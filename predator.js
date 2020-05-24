@@ -1,21 +1,20 @@
-
-class Boid{
+class Predator{
 
     //
     constantSpeed = false
-    maxSpeed = 4
+    maxSpeed = 2
 
     // Force settings
     maxForce = 1
 
     // Sensors
-    perceptionRange = 150
+    perceptionRange = 200
 
 
     // Render settings
     scale = 1.5
 
-
+    
     constructor(x, y){
         this.position = createVector(x, y)
         this.velocity = p5.Vector.random2D()
@@ -25,46 +24,14 @@ class Boid{
     Flock(boids, predators){
         this.acceleration.mult(0)
 
-        let align = this.Align(boids)
-        let cohesion = this.Cohesion(boids)
-        let separation = this.Separation(boids)
-        let fear = this.Flee(predators)
-
-        align.mult(alignSlider.value())
-        cohesion.mult(cohesionSlider.value())
-        separation.mult(separationSlider.value())
-
-
-        this.acceleration.add(align)
-        this.acceleration.add(cohesion)
+        let hunt = this.Hunt(boids)
+        let separation = this.Separation(predators)
+        
+        this.acceleration.add(hunt)
         this.acceleration.add(separation)
-        this.acceleration.add(fear)
     }
 
-    Align(boids){
-
-        let steer = createVector()
-
-        let total = 0
-        for (const other of boids) {
-            if(other != this)
-                if(this.position.dist(other.position) <= this.perceptionRange){
-                    steer.add(other.velocity)
-                    total++
-                }       
-        }
-
-        if(total > 0){
-            steer.div(total)
-            steer.setMag(this.maxSpeed)
-            steer.sub(this.velocity)
-            steer.limit(this.maxForce)
-        }
-            
-        return steer
-    }
-
-    Cohesion(boids){
+    Hunt(boids){
 
         let steer = createVector()
 
@@ -87,13 +54,13 @@ class Boid{
 
         return steer
     }
-
-    Separation(boids){
+    
+    Separation(predators){
 
         let steer = createVector()
 
         let total = 0
-        for (const other of boids) {
+        for (const other of predators) {
             if(other != this){
 
                 let dist = this.position.dist(other.position)
@@ -116,42 +83,11 @@ class Boid{
         return steer
     }
 
-    Flee(predators){
-        let steer = createVector()
-
-        let total = 0
-        for (const predator of predators) {
-            
-            let dist = this.position.dist(predator.position)
-            if(dist <= this.perceptionRange){
-                let diff = p5.Vector.sub(this.position, predator.position)
-                diff.div(dist * dist)
-                steer.add(diff)
-                total++
-            }     
-        }
-
-        if(total > 0){
-            steer.div(total)
-            steer.setMag(this.maxSpeed)
-            steer.sub(this.velocity)
-            steer.limit(this.maxForce)
-        }
-               
-        return steer
-    }
-
-
     Update(){
-        
         this.velocity.add(this.acceleration)
-
         if(this.constantSpeed) this.velocity.setMag(this.maxSpeed)
-        
         this.position.add(this.velocity)        
-
         this.Edges()
-
     }
 
     Draw(){
@@ -166,6 +102,7 @@ class Boid{
         }
         rotate(this.velocity.heading())
         noStroke()
+        fill('red')
         triangle(5 * this.scale, 0, -5 * this.scale, 2.5 * this.scale, -5 * this.scale, -2.5 * this.scale)
         pop()
     }

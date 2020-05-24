@@ -4,7 +4,8 @@
 //
 // Global variables
 //
-const n = 100
+const totalBoids = 100
+const totalPredators = 1
 
 const canvasSize = {
     width: window.innerWidth,
@@ -20,11 +21,12 @@ let alignSlider, cohesionSlider, separationSlider
 
 //
 let boids = []
+let predators = []
 
 
 //
 let renderRange = false
-let renderTrace = true
+let renderTrace = false
 
 function preload(){
     
@@ -37,9 +39,11 @@ function setup(){
     cohesionSlider = createSlider(0, 5, 1, .1)
     separationSlider = createSlider(0, 5, 1, .1)
 
-    for(let i = 0; i < n; i++)
+    for(let i = 0; i < totalBoids; i++)
         boids[i] = new Boid(random(canvasSize.width) , random(canvasSize.height))
 
+    for(let i = 0; i < totalPredators; i++)
+        predators[i] = new Predator(random(canvasSize.width) , random(canvasSize.height))
     
 
 }
@@ -50,14 +54,26 @@ function draw(){
 
     for (const boid of boids) {
         //boid.Align(boids)
-        boid.Flock(boids)
+        boid.Flock(boids, predators)
+    }
+
+    for (const predator of predators) {
+        predator.Flock(boids, predators)
     }
 
     for (const boid of boids) {
         boid.Update()
     }
 
+    for (const predator of predators) {
+        predator.Update()
+    }
+
     for (const boid of boids) {
         boid.Draw()
+    }
+
+    for (const predator of predators) {
+        predator.Draw()
     }
 }
