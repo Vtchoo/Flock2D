@@ -24,6 +24,7 @@ let boids = []
 
 //
 let renderRange = false
+let renderTrace = true
 
 function preload(){
     
@@ -44,7 +45,8 @@ function setup(){
 }
 
 function draw(){
-    background('black')
+    
+    background(renderTrace ? 'rgba(0,0,0,.15)' : 'black')
 
     for (const boid of boids) {
         //boid.Align(boids)

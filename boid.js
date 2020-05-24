@@ -116,7 +116,6 @@ class Boid{
     }
 
 
-
     Update(){
         
         this.velocity.add(this.acceleration)
@@ -140,6 +139,7 @@ class Boid{
             pop()
         }
         rotate(this.velocity.heading())
+        noStroke()
         triangle(5 * this.scale, 0, -5 * this.scale, 2.5 * this.scale, -5 * this.scale, -2.5 * this.scale)
         pop()
     }
