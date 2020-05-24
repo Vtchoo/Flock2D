@@ -11,6 +11,8 @@ class Boid{
     // Sensors
     perceptionRange = 150
 
+    //
+    maxDistanceToCenter = Math.min(.8 * canvasSize.width / 2, .8 * canvasSize.height / 2)
 
     // Render settings
     scale = 1.5
@@ -20,6 +22,11 @@ class Boid{
         this.position = createVector(x, y)
         this.velocity = p5.Vector.random2D()
         this.acceleration = createVector()
+
+        this.gridX = Math.floor((x / canvasSize.width) * grid.length)
+        this.gridY = Math.floor((y / canvasSize.height) * grid[0].length)
+
+        grid[this.gridX][this.gridY].boids.push(this)
     }
 
     Flock(boids, predators){
@@ -29,6 +36,7 @@ class Boid{
         let cohesion = this.Cohesion(boids)
         let separation = this.Separation(boids)
         let fear = this.Flee(predators)
+        let centerForce = this.BackToCenter()
 
         align.mult(alignSlider.value())
         cohesion.mult(cohesionSlider.value())
@@ -39,6 +47,8 @@ class Boid{
         this.acceleration.add(cohesion)
         this.acceleration.add(separation)
         this.acceleration.add(fear)
+        //this.acceleration.add(centerForce)
+        
     }
 
     Align(boids){
@@ -142,16 +152,51 @@ class Boid{
     }
 
 
+    BackToCenter(){
+
+        let steer = createVector()
+
+        let total = 0
+        
+        let circleCenter = createVector(center.x, center.y)
+        if(this.position.dist(circleCenter) > this.maxDistanceToCenter){
+            steer.add(circleCenter)
+            total++
+        }       
+        
+        if(total > 0){
+            steer.div(total)
+            steer.sub(this.position)
+            steer.setMag(this.maxSpeed)
+            steer.sub(this.velocity)
+            steer.limit(this.maxForce)
+        }
+
+        return steer
+    }
+
     Update(){
-        
         this.velocity.add(this.acceleration)
-
         if(this.constantSpeed) this.velocity.setMag(this.maxSpeed)
-        
         this.position.add(this.velocity)        
-
         this.Edges()
+        this.UpdateGridAddress()
+    }
 
+    UpdateGridAddress(){
+        let gridX = Math.floor((this.position.x / canvasSize.width) * grid.length) % grid.length
+        let gridY = Math.floor((this.position.y / canvasSize.height) * grid[0].length) % grid[0].length
+
+        gridX += gridX < 0 ? grid.length : 0
+        gridY += gridY < 0 ? grid[0].length : 0
+
+        if(this.gridX != gridX || this.gridY != gridY)
+        {
+            grid[this.gridX][this.gridY].boids.splice(grid[this.gridX][this.gridY].boids.indexOf(this), 1)
+            this.gridX = gridX
+            this.gridY = gridY
+            grid[this.gridX][this.gridY].boids.push(this)
+        }
     }
 
     Draw(){
@@ -162,6 +207,12 @@ class Boid{
             noStroke()
             fill('rgba(255, 0, 0, 0.25)')
             circle(0, 0, this.perceptionRange)
+            pop()
+        }
+        if(renderGridAddress){
+            push()
+            fill('white')
+            text(`[${this.gridX}, ${this.gridY}]`, 0, 0)
             pop()
         }
         rotate(this.velocity.heading())

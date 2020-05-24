@@ -19,6 +19,11 @@ class Predator{
         this.position = createVector(x, y)
         this.velocity = p5.Vector.random2D()
         this.acceleration = createVector()
+
+        this.gridX = Math.floor((x / canvasSize.width) * grid.length)
+        this.gridY = Math.floor((y / canvasSize.height) * grid[0].length)
+
+        grid[this.gridX][this.gridY].predators.push(this)
     }
 
     Flock(boids, predators){
@@ -37,11 +42,12 @@ class Predator{
 
         let total = 0
         for (const other of boids) {
-            if(other != this)
+            if(other != this){
                 if(this.position.dist(other.position) <= this.perceptionRange){
                     steer.add(other.position)
                     total++
-                }       
+                }
+            }
         }
 
         if(total > 0){
@@ -83,12 +89,31 @@ class Predator{
         return steer
     }
 
+    UpdateGridAddress(){
+        let gridX = Math.floor((this.position.x / canvasSize.width) * grid.length) % grid.length
+        let gridY = Math.floor((this.position.y / canvasSize.height) * grid[0].length) % grid[0].length
+
+        gridX += gridX < 0 ? grid.length : 0
+        gridY += gridY < 0 ? grid[0].length : 0
+
+        if(this.gridX != gridX || this.gridY != gridY)
+        {
+            grid[this.gridX][this.gridY].predators.splice(grid[this.gridX][this.gridY].predators.indexOf(this), 1)
+            this.gridX = gridX
+            this.gridY = gridY
+            grid[this.gridX][this.gridY].predators.push(this)
+        }
+    }
+
     Update(){
         this.velocity.add(this.acceleration)
         if(this.constantSpeed) this.velocity.setMag(this.maxSpeed)
-        this.position.add(this.velocity)        
+        this.position.add(this.velocity)
         this.Edges()
+        this.UpdateGridAddress()   
     }
+
+
 
     Draw(){
         push()
@@ -98,6 +123,12 @@ class Predator{
             noStroke()
             fill('rgba(255, 0, 0, 0.25)')
             circle(0, 0, this.perceptionRange)
+            pop()
+        }
+        if(renderGridAddress){
+            push()
+            fill('white')
+            text(`[${this.gridX}, ${this.gridY}]`, 0, 0)
             pop()
         }
         rotate(this.velocity.heading())
