@@ -115,8 +115,8 @@ function draw(){
             for (const boid of grid[i][j].boids) {
                 let boids = []
                 let predators = []
-                for(let k = -1; k <= 1; k++)
-                    for(let l = -1; l <= 1; l++){
+                for (let k = -1; k <= 1; k++) {
+                    for (let l = -1; l <= 1; l++) {
                     
                         let squareX = i + k > 0 ? i + k : i + k + grid.length
                         let squareY = j + l > 0 ? j + l : j + l + grid[0].length
@@ -126,6 +126,12 @@ function draw(){
                         boids.push(...grid[squareX][squareY].boids)
                         predators.push(...grid[squareX][squareY].predators)
                     }
+                }
+
+                if (mouseIsPressed) {
+                    let pseudoPredator = { position: createVector(mouseX, mouseY) };
+                    predators.push(pseudoPredator);
+                }
                 
                 boid.Flock(boids, predators)
             }
